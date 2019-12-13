@@ -1,0 +1,152 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>おしゃべりフラワー</title>
+</head>
+<style>
+  .title{
+    text-align:center;
+    color:deeppink;
+    border: solid 5px darkorchid;
+  }
+  .center-box {
+    text-align:center;
+  }
+  .large-text {
+    font-size: 3.0rem;
+    text-align:center;
+  }
+
+
+
+</style>
+<body>
+<h1 class="title">おしゃべりフラワー</h1>
+<center>
+<p>フラワーちゃんをクリックしてから<br>「水」「肥料」「強風」「踏む」「引っこ抜く」のどれかを話しかけてみよう！<br>話しかけ終わったらもう一度クリックしてね！</p>
+    </center>
+<p class="center-box"><img id="mic" src="off.jpg"></p>
+<div id="result-div" class="large-text"></div>
+<script>
+  const resultDiv = document.querySelector('#result-div');
+  const micDiv = document.querySelector('#mic');
+  let speakingtime = 0;
+  
+  // 音声認識機能(Chrome)
+  let rec = new webkitSpeechRecognition();
+  let stopped = true;
+  rec.continuous = true;
+  rec.interimResults = false;
+  rec.lang = 'ja-JP';
+  let happy;
+  let ase;
+  let angry;
+  let sad;
+  let shy;
+  
+  let flower = ["happy.jpg","ase.jpg","angry.jpg","sad.jpg","shy.jpg"];
+  let num = 0;
+
+
+    
+  micDiv.onclick = function () {
+    if (stopped == true) {
+      stopped = false;
+      resultDiv.innerHTML = "";
+      rec.start();
+    } else {
+      stopped = true;
+      rec.stop();
+    }
+  }
+
+  rec.onstart = function () { 
+    console.log('on start');
+    micDiv.setAttribute("src","on.jpg");
+    speakingtime = 0;
+  };
+
+  rec.onend = function () { 
+    console.log('on end');
+    micDiv.setAttribute("src","off.jpg");
+    if (stopped == false) {
+      setTimeout(function () {
+        rec.start();
+      },speakingtime);
+    }
+  };
+    
+  rec.onresult = function (e) {
+    rec.stop();
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) {
+        console.log(e);
+        let text = e.results[i][0].transcript;
+        console.log(text);
+        speakingtime = text.length * 200;
+        console.log("estimate:", speakingtime, "ms");
+        speak(reply(text));
+        resultDiv.innerHTML = text;
+          
+        if(text=="水"){
+            num=4;
+        }else if(text=="肥料"){
+          num=0;
+      }else if(text=="強風"){
+          num=1;
+      }else if(text=="ふむ"){
+          num=2;
+      }else if(text=="引っこ抜く"){
+          num=3;
+      }
+        resultDiv.innerHTML = ('<img src ="' + flower[num] + '">');
+        
+      }
+    }
+  }
+  
+  function reply(text){
+      if(text=="水"){
+          return "わーい！水だ！ありがとう！";
+      }else if(text=="肥料"){
+          return "やったー！肥料だ！ありがとう！";
+      }else if(text=="強風"){
+          return "うわー飛ばされるー";
+      }else if(text=="ふむ"){
+          return "いてて！";
+      }else if(text=="引っこ抜く"){
+          return "さようなら、今までありがとう...";
+      }else{
+          return "わかりません";
+      }
+      
+  }
+    
+  // 発話機能をインスタンス化
+  let msg = new SpeechSynthesisUtterance();
+  let voices = window.speechSynthesis.getVoices();
+
+  function speak(text) {
+    // 以下オプション設定（日本語は効かないもよう。。）
+    msg.voice = voices[7]; // 7:Google 日本人 ja-JP ※他は英語のみ
+    msg.volume = 1.0; // 音量 min 0 ~ max 1
+    msg.rate = 1.0; // 速度 min 0 ~ max 10
+    msg.pitch = 1.0; // 音程 min 0 ~ max 2
+
+    msg.text = text; // 喋る内容
+    msg.lang = 'ja-JP'; // en-US or ja-JP
+    // msg.lang = 'en-US'; // en-US or ja-JP
+
+    // 発話実行
+    speechSynthesis.speak(msg);
+  }
+  
+  // 終了時の処理
+  msg.onend = function (event) {
+    console.log('喋った時間：' + event.elapsedTime + 'ms');
+  }
+
+
+</script>
+</body>
+</html>
